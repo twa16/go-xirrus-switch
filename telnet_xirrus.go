@@ -55,9 +55,15 @@ func login(t *telnet.Conn, user string, passwd string) (data []byte, err error) 
 
 func GetTelnetToSwitch(address string, username string, password string) (t *telnet.Conn, err error) {
 	t, err = telnet.Dial("tcp", address+":23")
+	if err != nil {
+		return nil, err
+	}
 	t.SetUnixWriteMode(true)
 
 	_, err = login(t, username, password)
+	if err != nil {
+		return nil, err
+	}
 
 	return t, err
 }

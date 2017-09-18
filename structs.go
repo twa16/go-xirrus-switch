@@ -9,9 +9,9 @@ const timeout = 10 * time.Second
 
 //VLAN Struct that wraps around Xirrus VLANs
 type VLAN struct {
-	id         int
-	name       string
-	assignment string
+	Id         int
+	Name       string
+	Assignment string
 }
 
 //LLDPPeer Struct that wraps around Xirrus LLDP neighbors
