@@ -7,6 +7,9 @@ import (
 	"fmt"
 )
 
+/*
+ * Raw VLAN Support
+ */
 func processVLANList(data []byte) []VLAN {
 	dataString := string(data[:])                  //Convert bytes to string
 	dataLines := strings.Split(dataString, "\r\n") //Convert to string array
@@ -30,6 +33,7 @@ func processVLANList(data []byte) []VLAN {
 	return vlans
 }
 
+//GetVLANS Get VLANs
 func GetVLANS(t *telnet.Conn) ([]VLAN, error) {
 	sendln(t, "vlan")
 	sendln(t, "sh vlan")
@@ -45,6 +49,7 @@ func GetVLANS(t *telnet.Conn) ([]VLAN, error) {
 
 }
 
+//CreateVLAN Creates a VLAN
 func CreateVLAN(t *telnet.Conn, vlan VLAN) {
 	//Chop off extra bits
 	if vlan.Assignment[0] == ',' {
@@ -60,6 +65,7 @@ func CreateVLAN(t *telnet.Conn, vlan VLAN) {
 	expect(t, "#")
 }
 
+//GetVLAN Get a VLAN by ID
 func GetVLAN(t *telnet.Conn, vlanid int) (*VLAN, error){
 	vlans, err := GetVLANS(t)
 	if err != nil {
@@ -75,4 +81,50 @@ func GetVLAN(t *telnet.Conn, vlanid int) (*VLAN, error){
 	}
 
 	return &existingVLAN, err
+}
+
+/*
+ * VLANPortConfig Logic
+ */
+
+func processVLANPortConfigList(data []byte) []VLANPortConfig {
+	dataString := string(data[:])                  //Convert bytes to string
+	dataLines := strings.Split(dataString, "\r\n") //Convert to string array
+
+	var portConfigs []VLANPortConfig
+	for _, line := range dataLines {
+		fields := strings.Fields(line)                     // Split line into array delimited by whitespace
+		//Ignore bad lines
+		if len(fields) != 6 {
+			continue
+		}
+		if _, err := strconv.Atoi(fields[0]); err == nil { //Check if the line starts with a number, if it does, its a VLANPortConfig
+			//Start building portconfig struct
+			vlanPortConfig := VLANPortConfig{}
+			vlanPortConfig.Port, _ = strconv.Atoi(fields[0])
+			vlanPortConfig.NativeVLAN, _ = strconv.Atoi(fields[1])
+			vlanPortConfig.FrameType = fields[2]
+			vlanPortConfig.IngressFilter = fields[3]
+			vlanPortConfig.EgressRule = fields[4]
+			vlanPortConfig.PortType = fields[5]
+
+			portConfigs = append(portConfigs, vlanPortConfig)
+		}
+	}
+	return portConfigs
+}
+
+//GetVLANPortConfigs Get VLANPortConfigs
+func GetVLANPortConfigs(t *telnet.Conn) ([]VLANPortConfig, error) {
+	sendln(t, "vlan")
+	expect(t, "#")
+	sendln(t, "sh port-config")
+	data, err := expectLarge(t)
+	if err != nil {
+		return nil, err
+	}
+	vlans := processVLANPortConfigList(data)
+	sendln(t, "exit")
+	expect(t, "#")
+	return vlans, err
 }

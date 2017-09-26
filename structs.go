@@ -14,6 +14,16 @@ type VLAN struct {
 	Assignment string
 }
 
+//VLANPortConfig Struct the wraps around Xirrus VLAN port configuration output
+type VLANPortConfig struct {
+	Port          int
+	NativeVLAN    int
+	FrameType     string
+	IngressFilter string
+	EgressRule    string
+	PortType      string
+}
+
 //LLDPPeer Struct that wraps around Xirrus LLDP neighbors
 type LLDPPeer struct {
 	localPort          string
