@@ -83,6 +83,26 @@ func GetVLAN(t *telnet.Conn, vlanid int) (*VLAN, error){
 	return &existingVLAN, err
 }
 
+//SetNativeVlan Sets the native VLAN for a port
+func SetNativeVlan(t *telnet.Conn, port int, vlanid int) {
+	sendln(t, "vlan")
+	expect(t, "#")
+	sendln(t, "native-vlan "+strconv.Itoa(port)+" "+strconv.Itoa(vlanid))
+	expect(t, "#")
+	sendln(t, "exit")
+	expect(t, "#")
+}
+
+//SetEgressRule Sets the egress rule for a port. Valid modes are: access, hybrid, trunk.
+func SetEgressRule(t *telnet.Conn, port int, egressRule string) {
+	sendln(t, "vlan")
+	expect(t, "#")
+	sendln(t, "egress-rule "+strconv.Itoa(port)+" "+egressRule)
+	expect(t, "#")
+	sendln(t, "exit")
+	expect(t, "#")
+}
+
 /*
  * VLANPortConfig Logic
  */
@@ -128,3 +148,4 @@ func GetVLANPortConfigs(t *telnet.Conn) ([]VLANPortConfig, error) {
 	expect(t, "#")
 	return vlans, err
 }
+
